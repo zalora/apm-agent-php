@@ -133,12 +133,12 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
         snprintfRetVal = snprintf( auth, authBufferSize, "Authorization: %s %s", authKind, authValue );
         if ( snprintfRetVal < 0 || snprintfRetVal >= authBufferSize )
         {
-            ELASTIC_APM_LOG_ERROR( "Failed to build Authorization header."
-                                   " snprintfRetVal: %d. authKind: %s. authValue: %s.", snprintfRetVal, authKind, authValue );
+            php_printf( "Failed to build Authorization header."
+                                   " snprintfRetVal: %d. authKind: %s. authValue: %s.\n", snprintfRetVal, authKind, authValue );
             resultCode = resultFailure;
             goto failure;
         }
-        ELASTIC_APM_LOG_TRACE( "Adding header: %s", auth );
+        php_printf( "Adding header: %s\n", auth );
         chunk = curl_slist_append( chunk, auth );
     }
     chunk = curl_slist_append( chunk, "Content-Type: application/x-ndjson" );
@@ -149,7 +149,7 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
     snprintfRetVal = snprintf( userAgent, userAgentBufferSize, "elasticapm-php/%s", PHP_ELASTIC_APM_VERSION );
     if ( snprintfRetVal < 0 || snprintfRetVal >= authBufferSize )
     {
-        ELASTIC_APM_LOG_ERROR( "Failed to build User-Agent header. snprintfRetVal: %d", snprintfRetVal );
+        php_printf( "Failed to build User-Agent header. snprintfRetVal: %d\n", snprintfRetVal );
         resultCode = resultFailure;
         goto failure;
     }
@@ -158,23 +158,23 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
     snprintfRetVal = snprintf( url, urlBufferSize, "%s/intake/v2/events", config->serverUrl );
     if ( snprintfRetVal < 0 || snprintfRetVal >= authBufferSize )
     {
-        ELASTIC_APM_LOG_ERROR( "Failed to build full URL to APM Server's intake API. snprintfRetVal: %d", snprintfRetVal );
+        php_printf( "Failed to build full URL to APM Server's intake API. snprintfRetVal: %d\n", snprintfRetVal );
         resultCode = resultFailure;
         goto failure;
     }
-    ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_URL, url );
+    php_printf( curl, CURLOPT_URL, url );
 
     result = curl_easy_perform( curl );
     if ( result != CURLE_OK )
     {
-        ELASTIC_APM_LOG_ERROR( "Sending events to APM Server failed. URL: `%s'. Error message: `%s'.", url, curl_easy_strerror( result ) );
+        php_printf( "Sending events to APM Server failed. URL: `%s'. Error message: `%s'.\n", url, curl_easy_strerror( result ) );
         resultCode = resultFailure;
         goto failure;
     }
 
     long responseCode;
     curl_easy_getinfo( curl, CURLINFO_RESPONSE_CODE, &responseCode );
-    ELASTIC_APM_LOG_DEBUG( "Sent events to APM Server. Response HTTP code: %ld. URL: `%s'.", responseCode, url );
+    php_printf( "Sent events to APM Server. Response HTTP code: %ld. URL: `%s'.\n", responseCode, url );
 
     resultCode = resultSuccess;
 
