@@ -60,6 +60,7 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
             , serverTimeoutMilliseconds, (UInt64) serverTimeoutMillisecondsLong
             , (UInt64) serializedEvents.length, (int) serializedEvents.length, serializedEvents.begin );
 
+    php_printf("%s\n", serializedEvents.begin);
     ResultCode resultCode;
     CURL* curl = NULL;
     CURLcode result;
