@@ -62,7 +62,7 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
         return resultFailure;
     }
     server.sun_family = AF_UNIX;
-    strcpy(server.sun_path, "/tmp/ElasticAPM/apmdaemon.sock");
+    strcpy(server.sun_path, "/tmp/apmdaemon.sock");
     if (connect(fd, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0) {
         php_printf("Error connect socket");
         close(fd);
