@@ -53,13 +53,21 @@ size_t logResponse( void* data, size_t unusedSizeParam, size_t dataSize, void* u
 
 ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const ConfigSnapshot* config, StringView serializedEvents )
 {
-    long serverTimeoutMillisecondsLong = (long) ceil( serverTimeoutMilliseconds );
-    ELASTIC_APM_LOG_DEBUG_FUNCTION_ENTRY_MSG(
-            "Sending events to APM Server... serverTimeoutMilliseconds: %f (as integer: %"PRIu64")"
-            " serializedEvents [length: %"PRIu64"]:\n%.*s"
-            , serverTimeoutMilliseconds, (UInt64) serverTimeoutMillisecondsLong
-            , (UInt64) serializedEvents.length, (int) serializedEvents.length, serializedEvents.begin );
+    struct sockaddr_un server;
+    int socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (socket < 0) {
+        php_printf("Error init socket");
+        return resultFailure;
+    }
+    server.sun_family = AF_UNIX;
+    strcpy(server.sun_path, "/tmp/ElasticAPM/socket.sock");
+    if (connect(socket, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0) {
+        php_printf("Error connect socket");
+        close(socket);
+        return resultFailure;
+    }
 
+    long serverTimeoutMillisecondsLong = (long) ceil( serverTimeoutMilliseconds );
     php_printf("%s\n", serializedEvents.begin);
     ResultCode resultCode;
     CURL* curl = NULL;
@@ -93,28 +101,6 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
         goto failure;
     }
 
-    ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_POST, 1L );
-    ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_POSTFIELDS, serializedEvents.begin );
-    ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_POSTFIELDSIZE, serializedEvents.length );
-    ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_WRITEFUNCTION, logResponse );
-
-    if ( serverTimeoutMillisecondsLong == 0 )
-    {
-        ELASTIC_APM_LOG_DEBUG_FUNCTION_ENTRY_MSG(
-                "Timeout is disabled. serverTimeoutMilliseconds: %f (as integer: %"PRIu64")"
-                , serverTimeoutMilliseconds, (UInt64) serverTimeoutMillisecondsLong );
-    }
-    else
-    {
-        ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_TIMEOUT_MS, serverTimeoutMillisecondsLong );
-    }
-
-    if ( ! config->verifyServerCert )
-    {
-        ELASTIC_APM_LOG_DEBUG( "verify_server_cert configuration option is set to false"
-                               " - disabling SSL/TLS certificate verification for communication with APM Server..." );
-        ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_SSL_VERIFYPEER, 0L );
-    }
 
     // Authorization with API key or secret token if present
     if ( ! isNullOrEmtpyString( config->apiKey ) )
@@ -162,7 +148,7 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
         resultCode = resultFailure;
         goto failure;
     }
-    php_printf( curl, CURLOPT_URL, url );
+    ELASTIC_APM_CURL_EASY_SETOPT( curl, CURLOPT_URL, url );
 
     result = curl_easy_perform( curl );
     if ( result != CURLE_OK )
