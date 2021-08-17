@@ -54,16 +54,16 @@ size_t logResponse( void* data, size_t unusedSizeParam, size_t dataSize, void* u
 ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const ConfigSnapshot* config, StringView serializedEvents )
 {
     struct sockaddr_un server;
-    int socket = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (socket < 0) {
+    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sock < 0) {
         php_printf("Error init socket");
         return resultFailure;
     }
     server.sun_family = AF_UNIX;
     strcpy(server.sun_path, "/tmp/ElasticAPM/socket.sock");
-    if (connect(socket, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0) {
+    if (connect(sock, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0) {
         php_printf("Error connect socket");
-        close(socket);
+        close(sock);
         return resultFailure;
     }
 
