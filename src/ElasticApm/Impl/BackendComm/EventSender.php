@@ -99,6 +99,8 @@ final class EventSender implements EventSinkInterface
             $serializedEvents .= "}";
         }
 
+        $serializedEvents .= "\n";
+
         ($loggerProxy = $this->logger->ifDebugLevelEnabled(__LINE__, __FUNCTION__))
         && $loggerProxy->log(
             'Calling elastic_apm_send_to_server...',
