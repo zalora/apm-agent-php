@@ -71,10 +71,11 @@ ResultCode sendEventsToApmServer( double serverTimeoutMilliseconds, const Config
 
     if (write(fd, serializedEvents.begin, serializedEvents.length) < 0) {
         php_printf("Error send data");
+        close(fd);
         return resultFailure;
     }
 
-    close(fd)
+    close(fd);
     return resultSuccess;
 
     // long serverTimeoutMillisecondsLong = (long) ceil( serverTimeoutMilliseconds );
