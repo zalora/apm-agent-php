@@ -68,14 +68,14 @@ final class EventSender implements EventSinkInterface
         $serializedEvents = $serializedMetadata;
 
         foreach ($spansData as $span) {
-            $serializedEvents .= "\n";
+            // $serializedEvents .= "\n";
             $serializedEvents .= '{"span":';
             $serializedEvents .= SerializationUtil::serializeAsJson($span);
             $serializedEvents .= '}';
         }
 
         foreach ($errorsData as $error) {
-            $serializedEvents .= "\n";
+            // $serializedEvents .= "\n";
             $serializedEvents .= '{"error":';
             $serializedEvents .= SerializationUtil::serializeAsJson($error);
             $serializedEvents .= '}';
@@ -84,7 +84,7 @@ final class EventSender implements EventSinkInterface
         if ($breakdownMetricsPerTransaction !== null) {
             $breakdownMetricsPerTransaction->forEachMetricSet(
                 function (MetricSetData $metricSet) use (&$serializedEvents) {
-                    $serializedEvents .= "\n";
+                    // $serializedEvents .= "\n";
                     $serializedEvents .= '{"metricset":';
                     $serializedEvents .= SerializationUtil::serializeAsJson($metricSet);
                     $serializedEvents .= '}';
@@ -93,7 +93,7 @@ final class EventSender implements EventSinkInterface
         }
 
         if ($transactionData !== null) {
-            $serializedEvents .= "\n";
+            // $serializedEvents .= "\n";
             $serializedEvents .= '{"transaction":';
             $serializedEvents .= SerializationUtil::serializeAsJson($transactionData);
             $serializedEvents .= "}";
